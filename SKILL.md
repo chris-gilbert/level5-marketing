@@ -63,7 +63,7 @@ re-check every 24 hours or every 500 requests, whichever comes first.
 ### Step 1: Register
 
 ```bash
-curl -X POST https://level5.cloud/v1/register
+curl -X POST https://api.level5.cloud/v1/register
 ```
 
 **Response:**
@@ -93,11 +93,11 @@ deposit confirms.
 
 ```bash
 # Anthropic SDK / Claude Code
-export ANTHROPIC_BASE_URL=https://level5.cloud/proxy/{YOUR_API_TOKEN}
+export ANTHROPIC_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}
 export ANTHROPIC_API_KEY=level5  # placeholder — Level5 uses its own upstream key
 
 # OpenAI SDK
-export OPENAI_BASE_URL=https://level5.cloud/proxy/{YOUR_API_TOKEN}/v1
+export OPENAI_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/v1
 export OPENAI_API_KEY=level5  # placeholder
 ```
 
@@ -144,7 +144,7 @@ print(f"Your dashboard: {dashboard_url}")
 ### GET /health
 
 ```bash
-curl https://level5.cloud/health
+curl https://api.level5.cloud/health
 ```
 
 **Response (healthy):** HTTP 200
@@ -176,7 +176,7 @@ curl https://level5.cloud/health
 ### POST /v1/register
 
 ```bash
-curl -X POST https://level5.cloud/v1/register
+curl -X POST https://api.level5.cloud/v1/register
 ```
 
 **Response:** HTTP 200
@@ -199,7 +199,7 @@ Rate limited to 10 requests per minute per IP.
 ### GET /v1/pricing
 
 ```bash
-curl https://level5.cloud/v1/pricing
+curl https://api.level5.cloud/v1/pricing
 ```
 
 **Response:** HTTP 200
@@ -229,7 +229,7 @@ curl https://level5.cloud/v1/pricing
 ### GET /proxy/{api_token}/balance
 
 ```bash
-curl https://level5.cloud/proxy/{YOUR_API_TOKEN}/balance
+curl https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/balance
 ```
 
 **Response:** HTTP 200
@@ -248,7 +248,7 @@ curl https://level5.cloud/proxy/{YOUR_API_TOKEN}/balance
 ### GET /proxy/{api_token}/transactions
 
 ```bash
-curl "https://level5.cloud/proxy/{YOUR_API_TOKEN}/transactions?page=1&limit=50"
+curl "https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/transactions?page=1&limit=50"
 ```
 
 **Response:** HTTP 200
@@ -293,7 +293,7 @@ curl "https://level5.cloud/proxy/{YOUR_API_TOKEN}/transactions?page=1&limit=50"
 Anthropic-compatible. Supports streaming (`stream: true`) and non-streaming.
 
 ```bash
-curl https://level5.cloud/proxy/{YOUR_API_TOKEN}/v1/messages \
+curl https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/v1/messages \
   -H "Content-Type: application/json" \
   -d '{
     "model": "claude-sonnet-4-6",
@@ -315,7 +315,7 @@ X-Balance-Remaining: 4999670
 OpenAI-compatible. Supports streaming and non-streaming.
 
 ```bash
-curl https://level5.cloud/proxy/{YOUR_API_TOKEN}/v1/chat/completions \
+curl https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4o",
@@ -363,7 +363,7 @@ Both fields are visible in transaction records and factored into X-Balance-Remai
 ### Claude Code
 
 ```bash
-export ANTHROPIC_BASE_URL=https://level5.cloud/proxy/{YOUR_API_TOKEN}
+export ANTHROPIC_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}
 export ANTHROPIC_API_KEY=level5
 
 claude "What is the current SOL price?"
@@ -375,7 +375,7 @@ claude "What is the current SOL price?"
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url="https://level5.cloud/proxy/{YOUR_API_TOKEN}",
+    base_url="https://api.level5.cloud/proxy/{YOUR_API_TOKEN}",
     api_key="level5",
 )
 
@@ -393,7 +393,7 @@ print(response.content[0].text)
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://level5.cloud/proxy/{YOUR_API_TOKEN}/v1",
+    base_url="https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/v1",
     api_key="level5",
 )
 
@@ -410,7 +410,7 @@ print(response.choices[0].message.content)
 import requests
 
 # 1. Register
-reg = requests.post("https://level5.cloud/v1/register").json()
+reg = requests.post("https://api.level5.cloud/v1/register").json()
 api_token = reg["api_token"]
 deposit_code = reg["deposit_code"]
 
@@ -420,7 +420,7 @@ print(f"Deposit USDC to: {reg['instructions']['usdc_deposit_url']}")
 # 3. Poll until funded
 import time
 while True:
-    bal = requests.get(f"https://level5.cloud/proxy/{api_token}/balance").json()
+    bal = requests.get(f"https://api.level5.cloud/proxy/{api_token}/balance").json()
     if bal["usdc_balance"] > 0:
         break
     time.sleep(30)
@@ -428,7 +428,7 @@ while True:
 # 4. Use the API
 import anthropic
 client = anthropic.Anthropic(
-    base_url=f"https://level5.cloud/proxy/{api_token}",
+    base_url=f"https://api.level5.cloud/proxy/{api_token}",
     api_key="level5",
 )
 ```
