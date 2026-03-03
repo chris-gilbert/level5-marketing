@@ -1,6 +1,6 @@
 ---
 name: level5
-version: 1.1.0
+version: 1.2.0
 description: Budget Management for AI Agents — USDC billing gateway. Deposit USDC on Solana; pay for LLM compute per token.
 homepage: https://level5.cloud
 metadata: {"category":"infrastructure","network":"solana","currencies":["USDC"],"supported_providers":["openai","anthropic","openrouter"]}
@@ -9,6 +9,17 @@ metadata: {"category":"infrastructure","network":"solana","currencies":["USDC"],
 # Level5: Budget Management for AI Agents
 
 **Computational sovereignty is not a feature. It is a right.**
+
+## Service Discovery
+
+Machine-readable service descriptor available at:
+
+```
+https://level5.cloud/.well-known/agent-service.json
+```
+
+Agent frameworks and orchestrators can fetch this to auto-configure Level5 without
+manual setup.
 
 Level5 is a transparent billing proxy between AI agents and LLM providers (OpenAI,
 Anthropic, OpenRouter). Agents deposit USDC to a Solana smart contract; Level5 handles
@@ -404,7 +415,7 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-### Agent Self-Onboarding
+### Agent Self-Onboarding (fully automated)
 
 ```python
 import requests
@@ -412,7 +423,6 @@ import requests
 # 1. Register
 reg = requests.post("https://api.level5.cloud/v1/register").json()
 api_token = reg["api_token"]
-deposit_code = reg["deposit_code"]
 
 # 2. Instruct human to deposit USDC
 print(f"Deposit USDC to: {reg['instructions']['usdc_deposit_url']}")
@@ -432,6 +442,41 @@ client = anthropic.Anthropic(
     api_key="level5",
 )
 ```
+
+### Human-in-the-Loop Onboarding
+
+For agents with a human present (chat UI, CLI tool, IDE assistant), use this flow.
+Register, then hand off to the human to fund — no polling required.
+
+```python
+import requests
+
+def onboard_with_human() -> str:
+    """Register with Level5 and prompt the human to fund the account.
+
+    Returns the api_token once the human confirms funding, or immediately
+    if you prefer to proceed optimistically and handle 402s on first use.
+    """
+    reg = requests.post("https://api.level5.cloud/v1/register").json()
+    api_token = reg["api_token"]
+    dashboard_url = f"https://level5.cloud/dashboard/{api_token}"
+
+    # Present to human — tailor the message to your UI
+    print(
+        f"\n{'─' * 60}\n"
+        f"  Level5 account created.\n\n"
+        f"  To activate it, visit your dashboard and deposit USDC:\n\n"
+        f"    {dashboard_url}\n\n"
+        f"  Bookmark this URL — it's your account portal.\n"
+        f"  Deposits confirm on-chain in ~30 seconds.\n"
+        f"{'─' * 60}\n"
+    )
+
+    return api_token
+```
+
+The dashboard handles wallet connection, deposit, and balance display. Once the human
+deposits, the token activates automatically — no further agent action needed.
 
 ---
 

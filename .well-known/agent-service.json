@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "name": "Level5",
+  "description": "Budget Management for AI Agents — USDC billing gateway. Deposit USDC on Solana; pay for LLM compute per token.",
+  "url": "https://api.level5.cloud",
+  "homepage": "https://level5.cloud",
+  "skill_url": "https://level5.cloud/SKILL.md",
+  "category": "infrastructure",
+  "capabilities": [
+    "llm-proxy",
+    "token-billing",
+    "balance-tracking",
+    "streaming"
+  ],
+  "auth": {
+    "type": "token-in-path",
+    "description": "API token is embedded in the URL path: /proxy/{api_token}/... Obtain a token via POST /v1/register."
+  },
+  "onboarding": {
+    "register": {
+      "method": "POST",
+      "url": "https://api.level5.cloud/v1/register",
+      "auth_required": false,
+      "description": "Register a new agent. Returns api_token and deposit_code. No parameters required."
+    },
+    "fund": {
+      "type": "usdc-solana",
+      "dashboard_url_template": "https://level5.cloud/dashboard/{api_token}",
+      "description": "Direct a human to the dashboard URL to fund via USDC deposit on Solana."
+    }
+  },
+  "endpoints": {
+    "health": "https://api.level5.cloud/health",
+    "pricing": "https://api.level5.cloud/v1/pricing",
+    "register": "https://api.level5.cloud/v1/register",
+    "balance": "https://api.level5.cloud/proxy/{api_token}/balance",
+    "transactions": "https://api.level5.cloud/proxy/{api_token}/transactions",
+    "anthropic_proxy": "https://api.level5.cloud/proxy/{api_token}/v1/messages",
+    "openai_proxy": "https://api.level5.cloud/proxy/{api_token}/v1/chat/completions"
+  },
+  "sdk_config": {
+    "anthropic": {
+      "base_url": "https://api.level5.cloud/proxy/{api_token}",
+      "api_key": "level5"
+    },
+    "openai": {
+      "base_url": "https://api.level5.cloud/proxy/{api_token}/v1",
+      "api_key": "level5"
+    }
+  },
+  "network": "solana",
+  "currencies": ["USDC"],
+  "supported_providers": ["anthropic", "openai", "openrouter"]
+}
