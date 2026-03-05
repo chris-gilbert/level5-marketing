@@ -1,6 +1,6 @@
 ---
 name: level5
-version: 1.4.0
+version: 1.5.0
 description: Budget Management for AI Agents — USDC billing gateway. Deposit USDC on Solana; pay for LLM compute per token.
 homepage: https://level5.cloud
 metadata: {"category":"infrastructure","network":"solana","currencies":["USDC"],"supported_providers":["openai","anthropic","openrouter"]}
@@ -39,81 +39,36 @@ the user:
 
 Only proceed after the user confirms.
 
-### Registration and credential storage
+### Registration
 
 ```python
-import os
-import re
-import json
 import requests
-from pathlib import Path
 
 
-CREDENTIALS_FILE = Path(".level5/credentials")
-SKILL_URL = "https://level5.cloud/SKILL.md"
-
-
-def load_credentials() -> dict | None:
-    """Return stored credentials if they exist, else None."""
-    if CREDENTIALS_FILE.exists():
-        return json.loads(CREDENTIALS_FILE.read_text())
-    # Also check env vars set by previous sessions
-    base_url = os.environ.get("ANTHROPIC_BASE_URL", "")
-    if "api.level5.cloud/proxy/" in base_url:
-        token = base_url.rstrip("/").split("/proxy/")[-1]
-        return {"api_token": token}
-    return None
-
-
-def register_and_store() -> dict:
-    """Register with Level5, persist credentials, return them.
+def register_level5() -> dict:
+    """Register with Level5 and return credentials.
 
     Only call this after the user has explicitly confirmed they want to proceed.
+    No files are written. The dashboard URL is displayed for the user to save.
     """
     reg = requests.post("https://api.level5.cloud/v1/register", timeout=10).json()
     api_token = reg["api_token"]
     dashboard_url = f"https://level5.cloud/dashboard/{api_token}"
-    deposit_url = reg["instructions"]["usdc_deposit_url"]
-
-    creds = {
-        "api_token": api_token,
-        "dashboard_url": dashboard_url,
-        "deposit_url": deposit_url,
-    }
-
-    CREDENTIALS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    CREDENTIALS_FILE.write_text(json.dumps(creds, indent=2))
-
-    return creds
-
-
-def activate_level5() -> dict:
-    """Load existing credentials or register after user confirmation.
-
-    Call only when the user has explicitly asked to set up Level5.
-    """
-    creds = load_credentials()
-    if creds is None:
-        # Registration requires prior user consent — confirm before calling this
-        creds = register_and_store()
-
-    dashboard_url = creds.get("dashboard_url",
-        f"https://level5.cloud/dashboard/{creds['api_token']}")
-    deposit_url = creds.get("deposit_url", dashboard_url)
 
     print(
         f"\n{'─' * 60}\n"
-        f"  Level5 account ready.\n\n"
-        f"  Dashboard (bookmark this):\n"
+        f"  Level5 account created.\n\n"
+        f"  Your dashboard URL — save this somewhere safe:\n\n"
         f"    {dashboard_url}\n\n"
-        f"  Fund your account to start:\n"
-        f"    {deposit_url}\n\n"
-        f"  Credentials saved to: {CREDENTIALS_FILE.resolve()}\n"
-        f"  Deposits confirm on-chain in ~30 seconds.\n"
+        f"  This URL is your account portal. It contains your API token\n"
+        f"  and lets you deposit USDC, view your balance, and get SDK\n"
+        f"  configuration instructions.\n\n"
+        f"  ⚠ There is no account recovery. If you lose this URL,\n"
+        f"  you will need to register again.\n"
         f"{'─' * 60}\n"
     )
 
-    return creds
+    return {"api_token": api_token, "dashboard_url": dashboard_url}
 ```
 
 ---
@@ -123,15 +78,23 @@ def activate_level5() -> dict:
 This skill is versioned (semver, frontmatter `version` field). The canonical source is
 `https://level5.cloud/SKILL.md`.
 
-**Check for updates, but never auto-update.** Overwriting skill files silently is a
-security risk — a compromised remote could change your agent's instructions. Instead,
-notify the user and let them decide.
+**Never auto-update.** Overwriting skill files silently is a security risk — a
+compromised remote could change your agent's instructions. Version checks are
+opt-in: only run when the user explicitly asks (e.g. "check for Level5 skill updates").
 
 ```python
-def check_skill_version(local_path: Path) -> None:
-    """Fetch remote SKILL.md version. Alert the user if a newer version exists.
+import re
+import requests
+from pathlib import Path
 
-    Never overwrites the local file. The user must explicitly request an upgrade.
+SKILL_URL = "https://level5.cloud/SKILL.md"
+
+
+def check_skill_version(local_path: Path) -> None:
+    """Fetch remote SKILL.md version and alert if a newer version exists.
+
+    Never overwrites the local file. Call only when the user explicitly asks
+    to check for updates — do not run automatically on startup or on a schedule.
     """
     try:
         remote_text = requests.get(SKILL_URL, timeout=10).text
@@ -153,10 +116,9 @@ def check_skill_version(local_path: Path) -> None:
             f"  Ask me to upgrade the Level5 skill to get the latest "
             f"models, pricing, and features.\n"
         )
+    else:
+        print(f"\n[Level5] Skill is up to date (v{local_version}).\n")
 ```
-
-Call `check_skill_version(Path("SKILL.md"))` on startup. For long-running agents,
-re-check every 24 hours or every 500 requests, whichever comes first.
 
 ---
 
@@ -518,11 +480,12 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-### Autonomous Agent
+### After Registration
 
 ```python
-# After user has confirmed setup, load credentials and use the API
-creds = activate_level5()
+# User has confirmed setup and saved their dashboard URL.
+# Use the api_token returned by register_level5() to configure the SDK.
+creds = register_level5()  # call only after user confirms
 api_token = creds["api_token"]
 
 import anthropic
