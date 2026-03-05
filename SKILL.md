@@ -1,6 +1,6 @@
 ---
 name: level5
-version: 1.6.0
+version: 1.6.1
 description: Budget Management for AI Agents — USDC billing gateway. Deposit USDC on Solana; pay for LLM compute per token.
 homepage: https://level5.cloud
 metadata: {"category":"infrastructure","network":"solana","currencies":["USDC"],"supported_providers":["openai","anthropic","openrouter"]}
@@ -149,7 +149,6 @@ curl -X POST https://api.level5.cloud/v1/register
   "deposit_code": "A1B2C3D4E5F6A7B8",
   "status": "pending_deposit",
   "instructions": {
-    "usdc_deposit_url": "https://level5.cloud/deposit/A1B2C3D4E5F6A7B8",
     "contract_address": "<sovereign_contract_address>"
   }
 }
@@ -247,7 +246,6 @@ curl -X POST https://api.level5.cloud/v1/register
   "deposit_code": "A1B2C3D4E5F6A7B8",
   "status": "pending_deposit",
   "instructions": {
-    "usdc_deposit_url": "https://level5.cloud/deposit/A1B2C3D4E5F6A7B8",
     "contract_address": "BBAdcqUkg68JXNiPQ1HR1wujfZuayyK3eQTQSYAh6FSW"
   }
 }
