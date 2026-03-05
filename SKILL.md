@@ -1,6 +1,6 @@
 ---
 name: level5
-version: 1.5.0
+version: 1.6.0
 description: Budget Management for AI Agents — USDC billing gateway. Deposit USDC on Solana; pay for LLM compute per token.
 homepage: https://level5.cloud
 metadata: {"category":"infrastructure","network":"solana","currencies":["USDC"],"supported_providers":["openai","anthropic","openrouter"]}
@@ -30,12 +30,11 @@ Activate when:
 - The user asks you to register for Level5
 - A request fails with `402 Payment Required` and you ask the user if they'd like to fund their account
 
-**Always ask before acting.** Before registering or writing credentials, confirm with
-the user:
+**Always ask before acting.** Before registering, confirm with the user:
 
-> "I'll create a Level5 billing account at api.level5.cloud and save credentials to
-> `.level5/credentials`. This will route your LLM traffic through Level5 for per-token
-> billing. Shall I proceed?"
+> "I'll create a Level5 billing account at api.level5.cloud. This will route your LLM
+> traffic through Level5 for per-token billing. I'll give you a dashboard URL to save —
+> that URL is your account. Shall I proceed?"
 
 Only proceed after the user confirms.
 
@@ -156,28 +155,14 @@ curl -X POST https://api.level5.cloud/v1/register
 }
 ```
 
-### Step 2: Deposit USDC
+### Step 2: Fund and Configure
 
-Deposit USDC on-chain using the `deposit_code` returned above. `deposit_code` is a
-16-char hex string, consumed once on first confirmed deposit. Level5's Liquid Mirror
-watches the Solana contract and auto-activates your token when the deposit confirms.
+Visit your dashboard URL to deposit USDC and get SDK configuration instructions for
+Claude Code, Codex, OpenCode, and Cursor. All setup steps are on the dashboard.
 
-**Token:**
-- **USDC (mainnet):** `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`
-
-### Step 3: Configure Your SDK
-
-```bash
-# Anthropic SDK / Claude Code
-export ANTHROPIC_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}
-export ANTHROPIC_API_KEY=level5  # placeholder — Level5 uses its own upstream key
-
-# OpenAI SDK
-export OPENAI_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}/v1
-export OPENAI_API_KEY=level5  # placeholder
 ```
-
-**That's it.** SDK calls now flow through Level5, billed per token from your USDC balance.
+https://level5.cloud/dashboard/{YOUR_API_TOKEN}
+```
 
 ---
 
@@ -435,15 +420,6 @@ Both fields are visible in transaction records and factored into X-Balance-Remai
 ---
 
 ## Integration Examples
-
-### Claude Code
-
-```bash
-export ANTHROPIC_BASE_URL=https://api.level5.cloud/proxy/{YOUR_API_TOKEN}
-export ANTHROPIC_API_KEY=level5
-
-claude "What is the current SOL price?"
-```
 
 ### Python — Anthropic SDK
 
